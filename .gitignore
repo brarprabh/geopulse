@@ -1,0 +1,12 @@
+# Ignore node_modules in all subfolders
+node_modules/
+**/node_modules/
+
+# Ignore build outputs and secret env files
+dist/
+.env
+.DS_Store
+
+# Ignore Python virtual environments (for Stage 5 later)
+venv/
+__pycache__/

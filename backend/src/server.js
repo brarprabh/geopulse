@@ -2,6 +2,7 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
+require("./config/redisClient");
 
 const { initializeSockets } = require("./sockets/socketManager");
 const { startFleetSimulator } = require("./simulator/fleetBotEngine");

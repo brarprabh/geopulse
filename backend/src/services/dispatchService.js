@@ -34,21 +34,22 @@ async function dispatchOrder(order) {
 
     // 4. Rank candidates using our Custom Min-Heap
     const rankedCandidates = rankAgentsWithHeap(scoredCandidates);
+    console.log(`📊 [Dispatch] Ranked ${rankedCandidates.length} candidates via Min-Heap.`);
 
-    // 5. Try locking the best available agent
+    // FIX: Capture the top 3 candidates for the audit drawer right away!
+    const topCandidatesAudit = rankedCandidates.slice(0, 3);
+
+    // 4. Try locking the best available agent (Atomic Concurrency Check)
     let assignedAgent = null;
-    let topCandidatesAudit = [];
 
     for (const candidate of rankedCandidates) {
-        if (topCandidatesAudit.length < 3) {
-            topCandidatesAudit.push(candidate);
-        }
-
         const locked = await acquireAgentLock(candidate.agentId);
         if (locked) {
             assignedAgent = candidate;
-            assignOrderToRider(candidate.agentId); // <-- NEW: Increase winner's activeOrders by +1!
-            break;
+            assignOrderToRider(candidate.agentId); // Increase winner's activeOrders by +1!
+            break; // Successfully locked the best agent!
+        } else {
+            console.log(`🔒 [Lock Conflict] Agent ${candidate.agentId} was just grabbed. Trying next best...`);
         }
     }
 

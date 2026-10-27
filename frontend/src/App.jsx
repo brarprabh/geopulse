@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { socket } from "./services/socket";
 import LiveMap from "./components/Map/LiveMap";
+import StressTestControls from "./components/Chaos/StressTestControls";
 
 export default function App() {
   useEffect(() => {
@@ -13,9 +14,17 @@ export default function App() {
     };
   }, []);
 
+  const handleOrderDispatched = (result) => {
+    console.log("📦 Order successfully dispatched from UI:", result);
+  };
+
   return (
-    <div style={{ width: "100vw", height: "100vh" }}>
+    <div className="relative w-screen h-screen overflow-hidden">
+      {/* 1. Full-screen interactive Leaflet map with moving riders */}
       <LiveMap />
+
+      {/* 2. Floating Chaos & Stress-Test Control Panel */}
+      <StressTestControls onOrderDispatched={handleOrderDispatched} />
     </div>
   );
 }

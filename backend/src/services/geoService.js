@@ -24,11 +24,14 @@ async function updateAgentLocationInRedis(rider) {
 async function findNearbyAgents(storeLng, storeLat, radiusKm = 3) {
     try {
         // GEOSEARCH searches the 'fleet:locations' key around [lng, lat] within radiusKm kilometers
-        const nearbyAgentIds = await redisClient.geoSearch(
+        const nearbyAgentIds = await redisClient.geoSearchWith(
             GEO_KEY,
             { longitude: storeLng, latitude: storeLat },
             { radius: radiusKm, unit: "km" },
-            { WITHCOORD: true, WITHDIST: true } // Returns both coordinates and exact distance from store
+            [
+                "WITHCOORD",
+                "WITHDIST", // Requests distance from center point
+            ]
         );
 
         console.log(`🔍 [Redis GeoSearch] Found ${nearbyAgentIds.length} agents within ${radiusKm}km`);

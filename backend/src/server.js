@@ -6,6 +6,7 @@ require("./config/redisClient");
 const { findNearbyAgents } = require("./services/geoService");
 const { initializeSockets } = require("./sockets/socketManager");
 const { startFleetSimulator } = require("./simulator/fleetBotEngine");
+const { dispatchOrder } = require("./services/dispatchService")
 
 const app = express();
 app.use(cors());
@@ -39,6 +40,18 @@ app.get("/api/test-radar", async (req, res) => {
         totalFound: nearbyRiders.length,
         riders: nearbyRiders,
     });
+});
+
+app.get("/api/test-dispatch", async (req, res) => {
+    const dummyOrder = {
+        orderId: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
+        storeId: "STORE-1",
+        pickupCoords: { lat: 12.9784, lng: 77.6408 }, // Indiranagar Hub
+        slaUrgency: 0.8,
+    };
+
+    const result = await dispatchOrder(dummyOrder);
+    res.json(result);
 });
 
 const PORT = 4000;

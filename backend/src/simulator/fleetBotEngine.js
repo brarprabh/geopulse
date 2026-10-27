@@ -7,11 +7,27 @@ const riders = Array.from({ length: 10 }, (_, index) => ({
     lng: 77.6240 + (Math.random() - 0.5) * 0.04,
     speedKmh: Math.floor(20 + Math.random() * 25),
     battery: Math.floor(50 + Math.random() * 50),
-    status: "AVAILABLE",
+    status: "AVAILABLE", activeOrders: 0, // <-- NEW: Starts with 0 orders
+    acceptanceProb: Number((0.75 + Math.random() * 0.24).toFixed(2)),
 }));
 
 function getRiders() {
     return riders;
+}
+
+// NEW HELPER 1: Find a specific rider's live stats
+function getRiderById(agentId) {
+    return riders.find((r) => r.agentId === agentId);
+}
+
+// NEW HELPER 2: Increment a rider's workload when assigned an order
+function assignOrderToRider(agentId) {
+    const rider = riders.find((r) => r.agentId === agentId);
+    if (rider) {
+        rider.activeOrders += 1;
+        rider.status = "BUSY";
+    }
+    return rider;
 }
 
 function startFleetSimulator(io) {
@@ -31,4 +47,9 @@ function startFleetSimulator(io) {
     }, 2000);
 }
 
-module.exports = { getRiders, startFleetSimulator };
+module.exports = {
+    getRiders,
+    getRiderById,
+    assignOrderToRider,
+    startFleetSimulator,
+};

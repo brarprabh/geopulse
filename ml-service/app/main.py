@@ -25,3 +25,7 @@ def health_check():
         "service": "GeoPulse-AI",
         "engine": "FastAPI + scikit-learn"
     }
+
+@app.get("/")
+def read_root():
+    return {"message": "GeoPulse AI Microservice is online! Visit /docs for API documentation."}

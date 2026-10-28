@@ -8,5 +8,8 @@ dist/
 .DS_Store
 
 # Ignore Python virtual environments (for Stage 5 later)
+
 venv/
+.venv/
 __pycache__/
+*.pyc

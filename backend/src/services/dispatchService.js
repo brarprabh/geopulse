@@ -3,6 +3,7 @@ const { calculateCostScore } = require("../dsa/costFunction");
 const { rankAgentsWithHeap } = require("../dsa/MinHeap");
 const { acquireAgentLock } = require("./lockService");
 const { getRiderById, assignOrderToRider } = require("../simulator/fleetBotEngine"); // <-- NEW: Import helpers
+const { predictDeliveryETA } = require("./aiService");
 
 async function dispatchOrder(order) {
     const startTime = Date.now();
@@ -57,6 +58,13 @@ async function dispatchOrder(order) {
         return { success: false, reason: "ALL_TOP_AGENTS_LOCKED" };
     }
 
+    const predictedEtaMinutes = await predictDeliveryETA({
+        distanceKm: assignedAgent.distanceKm,
+        activeOrders: assignedAgent.activeOrders,
+    });
+
+
+
     const executionTimeMs = Date.now() - startTime;
 
     return {
@@ -64,6 +72,7 @@ async function dispatchOrder(order) {
         orderId: order.orderId,
         storeId: order.storeId,
         assignedAgentId: assignedAgent.agentId,
+        predictedEtaMinutes, // <-- Real-time ML prediction from Python!
         dispatchAudit: {
             evaluatedCount: rankedCandidates.length,
             executionTimeMs,

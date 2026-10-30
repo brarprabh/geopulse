@@ -13,4 +13,4 @@ venv/
 .venv/
 __pycache__/
 *.pyc
-.joblib
+*.joblib

@@ -1,5 +1,4 @@
-const redisClient = require("../config/redisClient");
-
+const { redisClient } = require("../config/redisClient");
 /**
  * Attempts to acquire an atomic lock on an agent using Redis SET NX with a 5-second TTL.
  * Returns true if lock is acquired successfully, false if another order grabbed them first.

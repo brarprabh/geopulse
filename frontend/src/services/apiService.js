@@ -1,11 +1,11 @@
-const API_BASE_URL = "http://localhost:4000/api";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
 
 /**
  * Sends a POST request to trigger an order dispatch at a specific Dark Store.
  */
 export async function triggerOrderDispatch(store) {
     try {
-        const response = await fetch(`${API_BASE_URL}/orders/dispatch`, {
+        const response = await fetch(`${BACKEND_URL}/api/orders/dispatch`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

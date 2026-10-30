@@ -1,23 +1,13 @@
 import React, { useState } from "react";
 import { triggerOrderDispatch } from "../../services/apiService";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
+
 export default function StressTestControls({ onOrderDispatched }) {
-  const [loading, setLoading] = useState(false); // to disable the loading button
+  const [loading, setLoading] = useState(false);
   const [lastResult, setLastResult] = useState(null);
 
-
-  const handleTriggerSpoof = async () => {
-    try {
-      await fetch("http://localhost:4000/api/orders/chaos/spoof-gps", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ agentId: "AGT-101" }),
-      });
-    } catch (err) {
-      console.error("Failed to trigger spoof:", err);
-    }
-  };
-
+  // 1. Normal Order Injection (Calls your existing apiService)
   const handleInjectOrder = async () => {
     setLoading(true);
     const targetStore = {
@@ -36,12 +26,26 @@ export default function StressTestControls({ onOrderDispatched }) {
     }
   };
 
+  // 2. Dynamic Spoof Route (Uses dynamic BACKEND_URL for production)
+  const handleTriggerSpoof = async () => {
+    try {
+      await fetch(`${BACKEND_URL}/api/orders/chaos/spoof-gps`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ agentId: "AGT-101" }),
+      });
+    } catch (err) {
+      console.error("Failed to trigger spoof:", err);
+    }
+  };
+
   return (
     <div className="absolute top-5 right-5 z-[1000] bg-white p-4 rounded-xl shadow-xl font-sans w-72 border border-slate-100 backdrop-blur-md bg-white/95">
       <h3 className="m-0 mb-3 text-sm font-bold text-slate-800 flex items-center gap-2">
         <span>⚡</span> Dispatch Engine Controls
       </h3>
-      
+
+      {/* 📦 Inject Order Button */}
       <button
         onClick={handleInjectOrder}
         disabled={loading}
@@ -56,16 +60,17 @@ export default function StressTestControls({ onOrderDispatched }) {
         )}
       </button>
 
-        {/* 🚨 Chaos Test Button */}
+      {/* 🚨 Chaos Test Button */}
       <button
         onClick={handleTriggerSpoof}
-        className="w-full mt-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold py-1.5 px-3 rounded-lg text-xs transition duration-150 shadow-sm cursor-pointer flex items-center justify-center gap-1.5"
+        className="w-full mt-2.5 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] transition-all text-white font-semibold py-2 px-3 rounded-lg text-xs shadow-sm cursor-pointer flex items-center justify-center gap-1.5"
       >
         <span>🚨</span> Trigger GPS Spoof (AGT-101)
       </button>
 
+      {/* Result Card */}
       {lastResult && (
-        <div className="mt-3 text-xs bg-slate-50 p-2.5 rounded-lg border border-slate-200 animate-fadeIn">
+        <div className="mt-3 text-xs bg-slate-50 p-2.5 rounded-lg border border-slate-200">
           {lastResult.success ? (
             <div>
               <p className="m-0 mb-1 text-emerald-600 font-bold flex items-center justify-between">

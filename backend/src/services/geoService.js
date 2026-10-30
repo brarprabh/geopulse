@@ -1,4 +1,4 @@
-const redisClient = require("../config/redisClient");
+const { redisClient } = require("../config/redisClient");
 
 const GEO_KEY = "fleet:locations";
 

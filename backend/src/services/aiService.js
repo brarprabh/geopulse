@@ -24,14 +24,57 @@ async function predictDeliveryETA({ distanceKm, activeOrders = 0, hourOfDay = nu
             throw new Error(`AI service responded with HTTP status ${response.status}`);
         }
 
-        const data = await response.json(); // will get data from app 
+        const data = await response.json();
         return data.predictedEtaMinutes;
     } catch (error) {
-        // Resilient Fallback: If Python service is temporarily down, use simple linear heuristic
         console.warn("⚠️ [AI Service] ML ETA prediction failed, using fallback heuristic:", error.message);
         const fallbackEta = 5.0 + distanceKm * 4.0 + activeOrders * 5.0;
         return Math.round(fallbackEta * 10) / 10;
     }
 }
 
-module.exports = { predictDeliveryETA };
+/**
+ * Calls the Python FastAPI microservice to verify GPS telemetry validity
+ */
+async function checkTelemetryAnomaly({
+    agentId,
+    prevCoords,
+    currCoords,
+    timeDeltaSeconds = 2.0,
+    stationaryDurationSeconds = 0.0,
+    isAssigned = false,
+}) {
+    try {
+        const response = await fetch(`${ML_SERVICE_URL}/detect-anomaly`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                agent_id: agentId,
+                prev_coords: { lat: prevCoords.lat, lng: prevCoords.lng },
+                curr_coords: { lat: currCoords.lat, lng: currCoords.lng },
+                time_delta_seconds: timeDeltaSeconds,
+                stationary_duration_seconds: stationaryDurationSeconds,
+                is_assigned: isAssigned,
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`AI anomaly detector responded with HTTP status ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        // High-availability fallback: do not block telemetry stream if AI service blips
+        return {
+            isAnomaly: false,
+            anomalyType: null,
+            agentId,
+            action: "NONE",
+            error: error.message,
+        };
+    }
+}
+
+module.exports = { predictDeliveryETA, checkTelemetryAnomaly };

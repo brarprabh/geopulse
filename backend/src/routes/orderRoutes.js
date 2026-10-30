@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
+const { triggerSpoofingAnomaly } = require("../simulator/fleetBotEngine");
 const { findNearbyAgents } = require("../services/geoService");
 const { dispatchOrder } = require("../services/dispatchService");
 
@@ -46,6 +47,21 @@ router.post("/dispatch", async (req, res) => {
     res.json({
         ...result,
         orderDetails: newOrder,
+    });
+});
+
+router.post("/chaos/spoof-gps", (req, res) => {
+    const { agentId } = req.body || {};
+    const spoofedRider = triggerSpoofingAnomaly(agentId || "AGT-101");
+
+    if (!spoofedRider) {
+        return res.status(404).json({ success: false, message: "Agent not found" });
+    }
+
+    res.json({
+        success: true,
+        message: `Injected GPS Spoofing anomaly on ${spoofedRider.agentId}`,
+        rider: spoofedRider,
     });
 });
 

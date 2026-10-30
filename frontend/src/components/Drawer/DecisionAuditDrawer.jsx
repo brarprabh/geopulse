@@ -38,7 +38,22 @@ export default function DecisionAuditDrawer({ auditData, onClose }) {
           <span className="text-slate-500 block">Engine Latency</span>
           <span className="font-mono font-bold text-blue-600">{dispatchAudit.executionTimeMs} ms</span>
         </div>
+
+        {/* 🤖 NEW: Python ML Model ETA Output */}
+        <div className="bg-purple-50 p-2 rounded border border-purple-100 col-span-2 flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <span className="text-base">🤖</span>
+            <div>
+              <span className="text-purple-600 font-semibold block text-[11px]">AI-Predicted Delivery ETA</span>
+              <span className="text-[10px] text-purple-400">RandomForest Regressor (FastAPI)</span>
+            </div>
+          </div>
+          <span className="font-mono font-extrabold text-sm text-purple-700">
+            {auditData.predictedEtaMinutes ? `${auditData.predictedEtaMinutes} mins` : "Calculating..."}
+          </span>
+        </div>
       </div>
+
 
       {/* Min-Heap Top 3 Leaderboard */}
       <div className="mt-2">

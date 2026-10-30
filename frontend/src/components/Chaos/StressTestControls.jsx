@@ -5,6 +5,19 @@ export default function StressTestControls({ onOrderDispatched }) {
   const [loading, setLoading] = useState(false); // to disable the loading button
   const [lastResult, setLastResult] = useState(null);
 
+
+  const handleTriggerSpoof = async () => {
+    try {
+      await fetch("http://localhost:4000/api/orders/chaos/spoof-gps", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ agentId: "AGT-101" }),
+      });
+    } catch (err) {
+      console.error("Failed to trigger spoof:", err);
+    }
+  };
+
   const handleInjectOrder = async () => {
     setLoading(true);
     const targetStore = {
@@ -41,6 +54,14 @@ export default function StressTestControls({ onOrderDispatched }) {
         ) : (
           "📦 Inject Order (Store 1)"
         )}
+      </button>
+
+        {/* 🚨 Chaos Test Button */}
+      <button
+        onClick={handleTriggerSpoof}
+        className="w-full mt-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold py-1.5 px-3 rounded-lg text-xs transition duration-150 shadow-sm cursor-pointer flex items-center justify-center gap-1.5"
+      >
+        <span>🚨</span> Trigger GPS Spoof (AGT-101)
       </button>
 
       {lastResult && (

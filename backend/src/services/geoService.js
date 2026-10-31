@@ -17,13 +17,32 @@ async function updateAgentLocationInRedis(rider) {
         console.error(`❌ [Redis Geo] Failed to update location for ${rider.agentId}:`, error);
     }
 }
+
 /**
- * NEW FUNCTION: Searches for available agents within a given radius of a Dark Store.
+ * Batch updates all agent coordinates in a single Redis roundtrip.
+ * Prevents ECONNRESET on cloud Redis providers (Upstash).
+ */
+async function updateAgentLocationsBatch(riders) {
+    if (!riders || riders.length === 0) return;
+    try {
+        const geoAddItems = riders.map((rider) => ({
+            longitude: rider.lng,
+            latitude: rider.lat,
+            member: rider.agentId,
+        }));
+
+        await redisClient.geoAdd(GEO_KEY, geoAddItems);
+    } catch (error) {
+        console.error("❌ [Redis Geo Batch Error]:", error);
+    }
+}
+
+/**
+ * Searches for available agents within a given radius of a Dark Store.
  * Uses Redis GEOSEARCH command for sub-15ms RAM spatial lookup.
  */
 async function findNearbyAgents(storeLng, storeLat, radiusKm = 3) {
     try {
-        // GEOSEARCH searches the 'fleet:locations' key around [lng, lat] within radiusKm kilometers
         const nearbyAgentIds = await redisClient.geoSearchWith(
             GEO_KEY,
             { longitude: storeLng, latitude: storeLat },
@@ -42,4 +61,8 @@ async function findNearbyAgents(storeLng, storeLat, radiusKm = 3) {
     }
 }
 
-module.exports = { updateAgentLocationInRedis, findNearbyAgents };
+module.exports = {
+    updateAgentLocationInRedis,
+    updateAgentLocationsBatch,
+    findNearbyAgents,
+};

@@ -1,5 +1,5 @@
-const { updateAgentLocationInRedis } = require("../services/geoService");
 const { checkTelemetryAnomaly } = require("../services/aiService");
+const { updateAgentLocationsBatch } = require("../services/geoService");
 
 // Initialize 10 virtual riders around central Bengaluru
 const riders = Array.from({ length: 10 }, (_, index) => {
@@ -82,16 +82,16 @@ function startFleetSimulator(io) {
             });
 
             // 4. If an anomaly is flagged, broadcast immediately to the React dashboard
-            if (anomalyResult.isAnomaly) {
+            if (anomalyResult && anomalyResult.isAnomaly) {
                 console.warn(`🚨 [Anomaly Flagged] ${anomalyResult.agentId}: ${anomalyResult.reason}`);
                 io.emit("telemetry_anomaly", anomalyResult);
             }
-
-            // 5. Update hot Redis geospatial index
-            await updateAgentLocationInRedis(rider);
         }
 
-        // Broadcast live fleet positions to frontend
+        // 5. Send all 10 locations in ONE atomic request to Redis (prevents ECONNRESET)
+        await updateAgentLocationsBatch(riders);
+
+        // 6. Broadcast live fleet positions to frontend
         io.emit("fleet_update", riders);
     }, 2000);
 }
@@ -100,6 +100,6 @@ module.exports = {
     getRiders,
     getRiderById,
     assignOrderToRider,
-    triggerSpoofingAnomaly, // random 6 km jump, we are adding..
+    triggerSpoofingAnomaly,
     startFleetSimulator,
 };
